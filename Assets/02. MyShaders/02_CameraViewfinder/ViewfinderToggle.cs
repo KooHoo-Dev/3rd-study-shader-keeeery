@@ -32,6 +32,7 @@ public class ViewfinderToggle : MonoBehaviour
     public float zoomUIHoldTime = 1.2f;
 
     static readonly int AmountId = Shader.PropertyToID("_ViewfinderAmount");
+    static readonly int IdleId = Shader.PropertyToID("_ViewfinderIdle");
     static readonly int ZoomId = Shader.PropertyToID("_ViewfinderZoom");
     static readonly int Zoom01Id = Shader.PropertyToID("_ViewfinderZoom01");
     static readonly int ZoomUIId = Shader.PropertyToID("_ViewfinderZoomUI");
@@ -66,8 +67,8 @@ public class ViewfinderToggle : MonoBehaviour
         var keyboard = Keyboard.current;
         var mouse = Mouse.current;
 
-        // 스페이스바: 켜기 / 끄기
-        if (keyboard != null && keyboard.spaceKey.wasPressedThisFrame)
+        // 숫자 1키: 켜기 / 끄기
+        if (keyboard != null && keyboard.digit1Key.wasPressedThisFrame)
             _on = !_on;
 
         float target = _on ? 1f : 0f;
@@ -96,6 +97,7 @@ public class ViewfinderToggle : MonoBehaviour
     {
         // 컴포넌트를 끄거나 지우면 효과를 끄고, 줌은 머티리얼 기본값(_Zoom)으로 돌아가게 0 을 넣음
         Shader.SetGlobalFloat(AmountId, 0f);
+        Shader.SetGlobalFloat(IdleId, 0f);
         Shader.SetGlobalFloat(ZoomId, 0f);
         Shader.SetGlobalFloat(ZoomUIId, 0f);
     }
@@ -105,6 +107,7 @@ public class ViewfinderToggle : MonoBehaviour
         // 처음과 끝이 느린 곡선(smoothstep)으로 바꿔 전환을 자연스럽게
         float eased = Mathf.SmoothStep(0f, 1f, _progress);
         Shader.SetGlobalFloat(AmountId, eased);
+        Shader.SetGlobalFloat(IdleId, 1f);   // 이 스크립트가 있는 씬에서만 평소 비네트를 켠다
 
         Shader.SetGlobalFloat(ZoomId, _zoom);
         // 줌 표시 바 위치: 배율의 로그 비율 (곱셈 줌과 맞춰 바가 일정한 속도로 움직이게)

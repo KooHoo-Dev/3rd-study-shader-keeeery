@@ -6,6 +6,7 @@
 // 4. 오버레이: 모서리 브래킷, 십자선, 깜빡이는 REC 점, 배터리, 줌 표시 바를 SDF(거리장)로 그림
 // 5. 전환: 전역 변수 _ViewfinderAmount (0 = 꺼짐, 1 = 켜짐) 로 모든 효과를 함께 보간
 //    ViewfinderToggle.cs 가 스페이스바에 맞춰 이 값을 부드럽게 올리고 내림
+// 6. 평소 비네트: 뷰파인더가 꺼져 있을 때만 화면 가장자리를 살짝 어둡게 (켜지면 3번 비네트로 넘어감)
 
 Shader "MyShaders/CameraViewfinder"
 {
@@ -20,6 +21,11 @@ Shader "MyShaders/CameraViewfinder"
         _VignetteStrength ("비네트 세기", Range(0, 1)) = 0.75
         _VignetteRadius ("비네트 시작 반지름", Range(0.2, 1.2)) = 0.55
         _VignetteSoftness ("비네트 부드러움", Range(0.05, 1)) = 0.45
+
+        [Header(Idle Vignette)]
+        _IdleVignetteStrength ("평소 비네트 세기 (뷰파인더 꺼짐)", Range(0, 1)) = 0.55
+        _IdleVignetteRadius ("평소 비네트 시작 반지름", Range(0, 1.2)) = 0.35
+        _IdleVignetteSoftness ("평소 비네트 부드러움", Range(0.05, 1.5)) = 0.75
 
         [Header(Overlay)]
         _OverlayColor ("오버레이 색", Color) = (1, 1, 1, 0.85)
@@ -59,6 +65,9 @@ Shader "MyShaders/CameraViewfinder"
                 float _VignetteStrength;
                 float _VignetteRadius;
                 float _VignetteSoftness;
+                float _IdleVignetteStrength;
+                float _IdleVignetteRadius;
+                float _IdleVignetteSoftness;
                 float4 _OverlayColor;
                 float _LineWidthPx;
                 float _Margin;
@@ -73,6 +82,7 @@ Shader "MyShaders/CameraViewfinder"
             // 머티리얼이 아니라 스크립트가 Shader.SetGlobalFloat 로 넣는 전역 값
             // Properties 와 CBUFFER 에 넣지 않아야 전역 값이 그대로 들어옴
             float _ViewfinderAmount;
+            float _ViewfinderIdle;     // ViewfinderToggle 이 켜져 있으면 1. 스크립트가 없는 씬(셰이더볼 테스트 씬 등)에서는 평소 비네트도 끈다
             float _ViewfinderZoom; // 현재 줌 배율 (0 이면 스크립트가 없는 것으로 보고 머티리얼의 _Zoom 사용)
             float _ViewfinderZoom01; // 줌 표시 바 위치 (0 = 최소 줌, 1 = 최대 줌)
             float _ViewfinderZoomUI; // 줌 표시 바 보이는 정도 (휠을 굴리면 1, 잠시 뒤 0 으로 사라짐)
@@ -211,14 +221,20 @@ Shader "MyShaders/CameraViewfinder"
                 float a = saturate(_ViewfinderAmount);
                 float2 uv = input.texcoord.xy;
 
-                // 꺼져 있으면 원본 화면을 그대로 돌려줌
-                if (a <= 0.0)
-                    return SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv);
-
                 float aspect = _ScreenParams.x / _ScreenParams.y;
                 // 화면 비율을 보정한 중심 좌표 (세로 기준 -0.5~0.5)
                 float2 p = (uv - 0.5) * float2(aspect, 1.0);
                 float r2 = dot(p, p);
+                float r = sqrt(r2);
+
+                // 0. 평소 비네트: 뷰파인더가 꺼져 있을 때만 가장자리를 살짝 어둡게 (켜질수록 사라지고 뷰파인더 비네트로 넘어감)
+                float idleAmount = _IdleVignetteStrength * saturate(_ViewfinderIdle) * (1.0 - a);
+                float idleVig = lerp(1.0, smoothstep(_IdleVignetteRadius + _IdleVignetteSoftness, _IdleVignetteRadius, r), idleAmount);
+
+                // 꺼져 있으면 원본 화면에 평소 비네트만 입혀 돌려줌
+                if (a <= 0.0)
+                    return SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv) * idleVig;
+
                 float aa = fwidth(p.y) * 1.0;
 
                 // 1. + 2. 줌, 배럴 왜곡, 색수차
@@ -230,8 +246,8 @@ Shader "MyShaders/CameraViewfinder"
                 col.g = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, LensUV(uv, r2, zoom, 0.0)).g;
                 col.b = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, LensUV(uv, r2, zoom, ca)).b;
 
-                // 3. 비네트: 반지름 _VignetteRadius 부터 어두워지기 시작
-                float r = sqrt(r2);
+                // 3. 비네트: 반지름 _VignetteRadius 부터 어두워지기 시작 (전환 중에는 평소 비네트와 함께 곱해짐)
+                col *= idleVig;
                 float vig = smoothstep(_VignetteRadius + _VignetteSoftness, _VignetteRadius, r);
                 col *= lerp(1.0, vig, _VignetteStrength * a);
 
