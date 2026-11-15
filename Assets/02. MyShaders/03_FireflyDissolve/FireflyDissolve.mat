@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: FireflyDissolve
+  m_Shader: {fileID: 4800000, guid: aa9d13a7b4934a2ebfddffc8c8976510, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _DustCoverage: 0.45
+    - _DustDensity: 28
+    - _DustLifetime: 0.25
+    - _DustSize: 0.22
+    - _EdgeWidth: 0.04
+    - _NoiseScale: 4
+    - _Progress: 0.35
+    - _Smoothness: 32
+    - _SparkleCoverage: 0.3
+    - _SparkleDensity: 10
+    - _SparkleRadius: 0.8
+    - _SparkleSize: 0.42
+    - _Specular: 0.3
+    - _Sweep: 0.35
+    - _SweepRange: 1
+    - _TwinkleSpeed: 8
+    m_Colors:
+    - _BaseColor: {r: 0.85, g: 0.87, b: 0.92, a: 1}
+    - _DustColor: {r: 1.6, g: 1.8, b: 2.2, a: 1}
+    - _DustDrift: {r: 0, g: 0.25, b: 0, a: 0}
+    - _EdgeColorInner: {r: 2.5, g: 2.4, b: 2, a: 1}
+    - _EdgeColorOuter: {r: 0.2, g: 1.6, b: 1.2, a: 1}
+    - _InnerColor: {r: 0.049999982, g: 0.049999982, b: 0.07999996, a: 1}
+    - _SweepDir: {r: 0, g: -1, b: 0, a: 0}
+    - _SweepOrigin: {r: 0, g: 0, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
